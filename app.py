@@ -1,5 +1,23 @@
+import math
 import streamlit as st
+import pandas as pd
+
 st.title("PriceSeer 👑 ")
+
+def set_up_and_down_rate(scarity):
+    if scarity == 0:
+        up_price = 1.01
+        down_price = 0.99
+    elif scarity == 1:
+        up_price = 1.03
+        down_price = 0.97
+    else:
+        up_price = 1.05
+        down_price = 0.95
+    return up_price,down_price
+
+
+
 
 #input the original price
 original_price = st.number_input("Please input the original price: ")
@@ -46,6 +64,7 @@ if st.button("Start to predict the future price"):
     else:
        final_predict_price = original_price + (size_input  + demand_input * 4 + drop_and_new_input * 3 + promotion_input * 2)
 
+#calculation
     if original_price <= 0:
         st.error("Sorry,Price must be positive!")
     else:
@@ -55,3 +74,27 @@ if st.button("Start to predict the future price"):
         else:
             st.write("Emm,maybe later 😭")
             st.write("Final predict price is: ",final_predict_price)
+
+#prediction
+    up, down = set_up_and_down_rate(scarcity_input)
+    
+    expected_value = 0
+    
+    for i in range(8):
+        up_days = i
+        down_days = 7 - i
+        
+        future_price = final_predict_price * (up ** up_days) * (down ** down_days)
+        prob = math.comb(7, i) * (0.5 ** 7)
+        expected_value += future_price * prob
+        
+    st.write("---")
+    st.subheader("Final Prediction 👑")
+    st.metric(label="Predicted Price in 7 Days", value=f"${round(expected_value, 2)}")
+    
+    if expected_value > (original_price * 1.05):
+        st.success("🔥 Purchase Now!")
+    elif expected_value < (original_price * 0.95):
+        st.error("🛑 Emm, maybe later!")
+    else:
+        st.warning("⚖️ Hold!")
